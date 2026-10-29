@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>60-Item Revision Tracker — Date-wise Checklist</title>
+<style>
+  :root{
+    --bg:#0b1020; --bg2:#111831; --card:rgba(255,255,255,.045); --card2:rgba(255,255,255,.07);
+    --line:rgba(255,255,255,.09); --text:#f1f5f9; --muted:#94a3b8; --dim:#64748b;
+    --violet:#8b5cf6; --cyan:#22d3ee; --green:#34d399; --amber:#fbbf24; --rose:#fb7185;
+    --grad:linear-gradient(120deg,#8b5cf6,#06b6d4);
+    --radius:20px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; color:var(--text);
+    font-family:"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    background:
+      radial-gradient(900px 500px at 85% -10%, rgba(139,92,246,.28), transparent 60%),
+      radial-gradient(700px 450px at -10% 20%, rgba(34,211,238,.16), transparent 60%),
+      radial-gradient(600px 400px at 50% 110%, rgba(52,211,153,.10), transparent 60%),
+      var(--bg);
+    min-height:100vh;
+  }
+  .wrap{max-width:860px; margin:0 auto; padding:28px 18px 64px}
+  /* ---------- Hero ---------- */
+  .hero{padding:14px 4px 22px}
+  .eyebrow{letter-spacing:.22em; font-size:11px; font-weight:700; color:var(--cyan); text-transform:uppercase}
+  h1{margin:8px 0 6px; font-size:clamp(30px,6vw,46px); line-height:1.05; letter-spacing:-.02em}
+  h1 span{background:var(--grad); -webkit-background-clip:text; background-clip:text; color:transparent}
+  .sub{color:var(--muted); font-size:15px; line-height:1.6; max-width:640px; margin:0}
+  .chips{display:flex; flex-wrap:wrap; gap:10px; margin-top:18px}
+  .chip{
+    display:flex; align-items:center; gap:10px; padding:10px 14px; border-radius:999px;
+    background:var(--card); border:1px solid var(--line); backdrop-filter:blur(8px); font-size:13px;
+  }
+  .chip b{font-size:15px}
+  .chip .dot{width:9px; height:9px; border-radius:50%}
+  .dot.p{background:#a78bfa} .dot.f{background:#22d3ee}
+  /* ---------- Progress ---------- */
+  .progress-card{
+    background:linear-gradient(135deg, rgba(139,92,246,.22), rgba(6,182,212,.14));
+    border:1px solid rgba(139,92,246,.35); border-radius:24px; padding:20px 22px; margin:4px 0 20px;
+  }
+  .progress-top{display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap}
+  .big{font-size:44px; font-weight:800; letter-spacing:-.03em; line-height:1}
+  .big small{font-size:16px; color:var(--muted); font-weight:600}
+  .stats{display:flex; gap:18px; flex-wrap:wrap; color:var(--muted); font-size:13px}
+  .stats b{color:var(--text); font-size:16px; display:block}
+  .bar{height:12px; background:rgba(255,255,255,.10); border-radius:999px; overflow:hidden; margin-top:16px}
+  .bar i{display:block; height:100%; background:var(--grad); border-radius:999px; transition:width .4s ease}
+  /* ---------- Toolbar ---------- */
+  .toolbar{
+    display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:18px;
+    position:sticky; top:0; z-index:20; padding:10px 0;
+    background:linear-gradient(var(--bg) 70%, transparent);
+  }
+  .seg{display:flex; gap:4px; background:rgba(255,255,255,.06); border:1px solid var(--line); padding:4px; border-radius:999px}
+  .seg button, .toolbtn{
+    border:0; cursor:pointer; font:inherit; border-radius:999px; padding:8px 14px;
+    background:transparent; color:var(--muted); font-weight:600; font-size:13px;
+  }
+  .seg button.on{background:#fff; color:#0b1020}
+  .toolbtn{background:var(--card); border:1px solid var(--line); color:var(--text)}
+  .toolbtn:hover{background:var(--card2)}
+  .toolbtn.danger{color:#fda4af; border-color:rgba(251,113,133,.35)}
+  label.remaining{display:flex; align-items:center; gap:7px; font-size:13px; color:var(--muted); cursor:pointer; margin-left:2px}
+  label.remaining input{accent-color:#8b5cf6; width:16px; height:16px}
+  /* ---------- Date nav ---------- */
+  .datenav{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:22px}
+  .datenav button{
+    border:1px solid var(--line); background:var(--card); color:var(--text); cursor:pointer;
+    border-radius:14px; padding:9px 12px; font:inherit; font-size:13px; text-align:left; line-height:1.35;
+  }
+  .datenav button small{display:block; color:var(--muted); font-size:11px}
+  .datenav button.done{border-color:rgba(52,211,153,.5); background:rgba(52,211,153,.10)}
+  .datenav button.next{border-color:rgba(251,191,36,.55); background:rgba(251,191,36,.10)}
+  /* ---------- Date sections ---------- */
+  .datecard{
+    background:var(--card); border:1px solid var(--line); border-radius:24px;
+    padding:20px; margin-bottom:18px; scroll-margin-top:76px;
+  }
+  .datecard.past{opacity:.92}
+  .datehead{display:flex; gap:16px; align-items:center; flex-wrap:wrap}
+  .daynum{
+    width:58px; height:58px; border-radius:18px; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    background:var(--grad); font-weight:800; line-height:1; flex-shrink:0;
+  }
+  .daynum span{font-size:22px}
+  .daynum small{font-size:10px; letter-spacing:.14em; opacity:.85; margin-top:2px}
+  .datehead h2{margin:0; font-size:19px; letter-spacing:-.01em}
+  .datehead p{margin:3px 0 0; color:var(--muted); font-size:13px}
+  .datehead .spacer{flex:1}
+  .datepct{font-weight:800; font-size:15px}
+  .datebar{height:8px; background:rgba(255,255,255,.10); border-radius:999px; overflow:hidden; margin-top:14px}
+  .datebar i{display:block; height:100%; background:var(--grad); border-radius:999px; transition:width .4s ease}
+  .items{margin-top:16px; display:grid; gap:10px}
+  /* ---------- Item rows ---------- */
+  .item{
+    display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+    background:rgba(255,255,255,.035); border:1px solid var(--line); border-radius:16px; padding:12px 14px;
+    transition:border-color .2s, background .2s;
+  }
+  .item.done{background:rgba(52,211,153,.08); border-color:rgba(52,211,153,.35)}
+  .num{
+    width:44px; height:44px; border-radius:14px; flex-shrink:0; display:flex; align-items:center; justify-content:center;
+    font-weight:800; font-size:15px; background:rgba(255,255,255,.08); color:#fff;
+  }
+  .item.done .num{background:rgba(52,211,153,.20); color:#6ee7b7}
+  .iname{font-weight:700; font-size:16px; letter-spacing:-.01em}
+  .pill{font-size:11px; font-weight:700; letter-spacing:.06em; padding:4px 9px; border-radius:999px; text-transform:uppercase}
+  .pill.pharma{background:rgba(167,139,250,.18); color:#c4b5fd; border:1px solid rgba(167,139,250,.35)}
+  .pill.forensic{background:rgba(34,211,238,.14); color:#67e8f9; border:1px solid rgba(34,211,238,.35)}
+  .donetag{font-size:12px; font-weight:700; color:#6ee7b7}
+  .passes{margin-left:auto; display:flex; gap:6px; flex-wrap:wrap}
+  .pass{
+    border:1px solid var(--line); background:transparent; color:var(--muted); cursor:pointer;
+    border-radius:999px; padding:7px 12px; font:inherit; font-size:12.5px; font-weight:700;
+  }
+  .pass.on{background:var(--grad); border-color:transparent; color:#fff}
+  .star{
+    border:1px solid var(--line); background:transparent; color:var(--dim); cursor:pointer;
+    width:34px; height:34px; border-radius:50%; font-size:16px; line-height:1;
+  }
+  .star.on{color:var(--amber); border-color:rgba(251,191,36,.5); background:rgba(251,191,36,.10)}
+  .empty{color:var(--muted); text-align:center; padding:26px 10px; font-size:14px}
+  .foot{color:var(--dim); font-size:12.5px; line-height:1.7; text-align:center; margin-top:26px}
+  @media (max-width:520px){
+    .passes{margin-left:0; width:100%}
+    .pass{flex:1; text-align:center}
+    .daynum{width:50px; height:50px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <div class="eyebrow">Pharma &nbsp;•&nbsp; Forensic &nbsp;•&nbsp; 60 Items</div>
+    <h1>Revision Tracker, <span>date by date.</span></h1>
+    <p class="sub">No topic names, no clutter — just the original item numbers, grouped by the day they fall on. Tick Pass 1, Pass 2 and Pass 3 as you revise each item.</p>
+    <div class="chips">
+      <div class="chip"><span class="dot p"></span> Pharma — Mon 16 Nov 2026 &nbsp;<b id="cd-pharma">…</b></div>
+      <div class="chip"><span class="dot f"></span> Forensic — Sun 22 Nov 2026 &nbsp;<b id="cd-forensic">…</b></div>
+    </div>
+  </header>
+
+  <section class="progress-card">
+    <div class="progress-top">
+      <div class="big"><span id="pct">0</span><small>% complete</small></div>
+      <div class="stats">
+        <div><b id="stat-items">0 / 60</b>items fully done</div>
+        <div><b id="stat-passes">0 / 180</b>passes ticked</div>
+        <div><b id="stat-dates">0 / 8</b>dates complete</div>
+      </div>
+    </div>
+    <div class="bar"><i id="bar" style="width:0%"></i></div>
+  </section>
+
+  <div class="toolbar">
+    <div class="seg" role="group" aria-label="Subject filter">
+      <button data-filter="all" class="on">All</button>
+      <button data-filter="pharma">Pharma</button>
+      <button data-filter="forensic">Forensic</button>
+    </div>
+    <label class="remaining"><input type="checkbox" id="remaining-only"> Remaining only</label>
+    <div style="flex:1"></div>
+    <button class="toolbtn" id="btn-next">↑ Up next</button>
+    <button class="toolbtn" id="btn-export">Export</button>
+    <button class="toolbtn" id="btn-import">Import</button>
+    <button class="toolbtn danger" id="btn-reset">Reset</button>
+    <input type="file" id="file-import" accept=".json,application/json" hidden>
+  </div>
+
+  <nav class="datenav" id="datenav" aria-label="Jump to a date"></nav>
+  <main id="dates"></main>
+
+  <p class="foot">
+    Numbering is the original tracker’s own: Pharma Term 1 Items 1–20, Pharma Term 2 Items 1–20, Forensic Term 1 Items 1–10, Forensic Term 2 Items 1–10. The same number can appear in different terms — the tag on each row says which term it belongs to.<br>
+    Dates are the original scheduled dates. Your ticks save automatically in this browser — use Export to move them to another device.
+  </p>
+</div>
+
+<script>
+"use strict";
+/* Items use their original per-term numbers (e.g. Pharma Term 2, Item 3). Dates are the original scheduled dates. */
+const GROUPS = [
+  { date:"2026-11-04", subj:"pharma",   term:1, ids:["p1_1","p1_2","p1_3","p1_4","p1_5","p1_6","p1_7","p1_8","p1_9","p1_10"] },
+  { date:"2026-11-06", subj:"pharma",   term:1, ids:["p1_11","p1_12","p1_13","p1_14","p1_15","p1_16","p1_17","p1_18","p1_19","p1_20"] },
+  { date:"2026-10-31", subj:"pharma",   term:2, ids:["p2_1","p2_2","p2_3","p2_4","p2_5","p2_6","p2_7","p2_8","p2_9","p2_10"] },
+  { date:"2026-11-02", subj:"pharma",   term:2, ids:["p2_11","p2_12","p2_13","p2_14","p2_15","p2_16","p2_17","p2_18","p2_19","p2_20"] },
+  { date:"2026-11-03", subj:"forensic", term:1, ids:["f1_1","f1_2","f1_3","f1_4","f1_5"] },
+  { date:"2026-11-05", subj:"forensic", term:1, ids:["f1_6","f1_7","f1_8","f1_9","f1_10"] },
+  { date:"2026-10-30", subj:"forensic", term:2, ids:["f2_1","f2_2","f2_3","f2_4","f2_5"] },
+  { date:"2026-11-01", subj:"forensic", term:2, ids:["f2_6","f2_7","f2_8","f2_9","f2_10"] }
+];
+const WEEKDAY = {
+  "2026-10-30":"Friday", "2026-10-31":"Saturday", "2026-11-01":"Sunday", "2026-11-02":"Monday",
+  "2026-11-03":"Tuesday", "2026-11-04":"Wednesday", "2026-11-05":"Thursday", "2026-11-06":"Friday"
+};
+const MONTH = { "10":"Oct", "11":"Nov" };
+const STORAGE_KEY = "medrevise_60_items_data_v2"; /* same key + ids as the original file, so old ticks carry over */
+
+const ITEMS = [];
+GROUPS.forEach(g => g.ids.forEach(id => {
+  const num = Number(id.split("_")[1]);
+  ITEMS.push({ id, n: num, term: g.term, subj: g.subj, date: g.date, pass1:false, pass2:false, pass3:false, flagged:false });
+}));
+const byId = Object.fromEntries(ITEMS.map(it => [it.id, it]));
+
+let filter = "all";
+let remainingOnly = false;
+
+function load(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){
+      const data = JSON.parse(raw);
+      (data.items || []).forEach(saved => {
+        const it = byId[saved.id];
+        if(it){ it.pass1 = !!saved.pass1; it.pass2 = !!saved.pass2; it.pass3 = !!saved.pass3; it.flagged = !!saved.flagged; }
+      });
+    }
+  }catch(e){ /* fresh start if stored data is unreadable */ }
+}
+function save(){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ items: ITEMS.map(it => ({ id: it.id, pass1: it.pass1, pass2: it.pass2, pass3: it.pass3, flagged: it.flagged })), notes: {} }));
+  }catch(e){ /* storage unavailable (e.g. private mode) — ticks still work for this session */ }
+}
+function doneCount(it){ return (it.pass1?1:0) + (it.pass2?1:0) + (it.pass3?1:0); }
+function isDone(it){ return it.pass1 && it.pass2 && it.pass3; }
+function todayISO(){
+  const d = new Date();
+  return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+}
+function daysLeft(iso){
+  const [y,m,dd] = iso.split("-").map(Number);
+  const target = new Date(y, m-1, dd);
+  const now = new Date(); now.setHours(0,0,0,0);
+  return Math.round((target - now) / 86400000);
+}
+function fmtDate(iso){
+  const [y,m,d] = iso.split("-");
+  return Number(d) + " " + MONTH[m] + " " + y;
+}
+function updateCountdown(){
+  const p = daysLeft("2026-11-16"), f = daysLeft("2026-11-22");
+  document.getElementById("cd-pharma").textContent = p > 0 ? p + " days left" : (p === 0 ? "Today!" : "Done");
+  document.getElementById("cd-forensic").textContent = f > 0 ? f + " days left" : (f === 0 ? "Today!" : "Done");
+}
+function updateStats(){
+  const itemsDone = ITEMS.filter(isDone).length;
+  const passes = ITEMS.reduce((s,it) => s + doneCount(it), 0);
+  const datesDone = [...new Set(ITEMS.map(it => it.date))].filter(d => ITEMS.filter(it => it.date === d).every(isDone)).length;
+  const pct = Math.round(passes / 180 * 100);
+  document.getElementById("pct").textContent = pct;
+  document.getElementById("bar").style.width = pct + "%";
+  document.getElementById("stat-items").textContent = itemsDone + " / 60";
+  document.getElementById("stat-passes").textContent = passes + " / 180";
+  document.getElementById("stat-dates").textContent = datesDone + " / 8";
+}
+function visibleItems(){
+  return ITEMS.filter(it => (filter === "all" || it.subj === filter) && (!remainingOnly || !isDone(it)));
+}
+function render(){
+  const datesSorted = [...new Set(ITEMS.map(it => it.date))].sort();
+  const today = todayISO();
+  const vis = visibleItems();
+  const nav = document.getElementById("datenav");
+  nav.innerHTML = "";
+  const main = document.getElementById("dates");
+  main.innerHTML = "";
+  let nextDate = datesSorted.find(d => d >= today && ITEMS.some(it => it.date === d && !isDone(it))) || null;
+
+  datesSorted.forEach(date => {
+    const dayItems = ITEMS.filter(it => it.date === date);
+    const dayVis = vis.filter(it => it.date === date);
+    const doneN = dayItems.filter(isDone).length;
+    const pct = Math.round(doneN / dayItems.length * 100);
+    const btn = document.createElement("button");
+    btn.className = (pct === 100 ? "done " : "") + (date === nextDate ? "next" : "");
+    btn.innerHTML = "<b>" + fmtDate(date) + "</b><small>" + WEEKDAY[date] + " · " + doneN + "/" + dayItems.length + " done</small>";
+    btn.addEventListener("click", () => {
+      const el = document.getElementById("date-" + date);
+      if(el) el.scrollIntoView({ behavior:"smooth", block:"start" });
+    });
+    nav.appendChild(btn);
+
+    if(dayVis.length === 0) return;
+    const sec = document.createElement("section");
+    sec.className = "datecard" + (date < today ? " past" : "");
+    sec.id = "date-" + date;
+    const subjLabel = (dayItems[0].subj === "pharma" ? "Pharma" : "Forensic") + " Term " + dayItems[0].term;
+    sec.innerHTML =
+      '<div class="datehead">' +
+        '<div class="daynum"><span>' + Number(date.split("-")[2]) + '</span><small>' + MONTH[date.split("-")[1]].toUpperCase() + '</small></div>' +
+        '<div><h2>' + WEEKDAY[date] + ', ' + fmtDate(date) + '</h2>' +
+        '<p>' + subjLabel + ' · Items ' + dayItems[0].n + '–' + dayItems[dayItems.length-1].n + '</p></div>' +
+        '<div class="spacer"></div><div class="datepct">' + doneN + '/' + dayItems.length + ' done</div>' +
+      '</div>' +
+      '<div class="datebar"><i style="width:' + pct + '%"></i></div>' +
+      '<div class="items"></div>';
+    const list = sec.querySelector(".items");
+    dayVis.forEach(it => list.appendChild(itemRow(it)));
+    main.appendChild(sec);
+  });
+  if(main.innerHTML === ""){
+    main.innerHTML = '<div class="empty">Nothing left here — switch the filter off or uncheck “Remaining only” to see everything.</div>';
+  }
+  updateStats();
+}
+function itemRow(it){
+  const row = document.createElement("div");
+  row.className = "item" + (isDone(it) ? " done" : "");
+  row.id = "item-" + it.id;
+  const pill = it.subj === "pharma" ? "pill pharma" : "pill forensic";
+  const pillText = (it.subj === "pharma" ? "Pharma" : "Forensic") + " T" + it.term;
+  row.innerHTML =
+    '<div class="num">' + it.n + '</div>' +
+    '<div><div class="iname">Item ' + it.n + '</div></div>' +
+    '<span class="' + pill + '">' + pillText + '</span>' +
+    (isDone(it) ? '<span class="donetag">✓ Done</span>' : '') +
+    '<div class="passes">' +
+      [1,2,3].map(p =>
+        '<button class="pass' + (it["pass"+p] ? " on" : "") + '" aria-pressed="' + (!!it["pass"+p]) + '" data-pass="' + p + '">Pass ' + p + '</button>'
+      ).join("") +
+      '<button class="star' + (it.flagged ? " on" : "") + '" aria-label="Flag item" title="Flag for later">★</button>' +
+    '</div>';
+  row.querySelectorAll(".pass").forEach(b => {
+    b.addEventListener("click", () => {
+      const p = Number(b.dataset.pass);
+      it["pass"+p] = !it["pass"+p];
+      save(); refreshRow(it); updateStats(); refreshDateBars();
+    });
+  });
+  row.querySelector(".star").addEventListener("click", () => {
+    it.flagged = !it.flagged;
+    save(); refreshRow(it);
+  });
+  return row;
+}
+function refreshRow(it){
+  const old = document.getElementById("item-" + it.id);
+  if(!old) return;
+  const fresh = itemRow(it);
+  old.replaceWith(fresh);
+}
+function refreshDateBars(){
+  [...new Set(ITEMS.map(it => it.date))].forEach(date => {
+    const sec = document.getElementById("date-" + date);
+    if(!sec) return;
+    const dayItems = ITEMS.filter(it => it.date === date);
+    const doneN = dayItems.filter(isDone).length;
+    const pct = Math.round(doneN / dayItems.length * 100);
+    sec.querySelector(".datepct").textContent = doneN + "/" + dayItems.length + " done";
+    sec.querySelector(".datebar i").style.width = pct + "%";
+  });
+  renderNavOnly();
+}
+function renderNavOnly(){
+  const datesSorted = [...new Set(ITEMS.map(it => it.date))].sort();
+  const nav = document.getElementById("datenav");
+  nav.querySelectorAll("button").forEach((btn, i) => {
+    const date = datesSorted[i];
+    const dayItems = ITEMS.filter(it => it.date === date);
+    const doneN = dayItems.filter(isDone).length;
+    btn.className = (doneN === dayItems.length ? "done " : "");
+    btn.querySelector("small").textContent = WEEKDAY[date] + " · " + doneN + "/" + dayItems.length + " done";
+  });
+}
+
+document.querySelectorAll(".seg button").forEach(b => {
+  b.addEventListener("click", () => {
+    document.querySelectorAll(".seg button").forEach(x => x.classList.remove("on"));
+    b.classList.add("on");
+    filter = b.dataset.filter;
+    render();
+  });
+});
+document.getElementById("remaining-only").addEventListener("change", e => {
+  remainingOnly = e.target.checked;
+  render();
+});
+document.getElementById("btn-next").addEventListener("click", () => {
+  const today = todayISO();
+  const datesSorted = [...new Set(ITEMS.map(it => it.date))].sort();
+  const next = datesSorted.find(d => d >= today && ITEMS.some(it => it.date === d && !isDone(it)));
+  const el = next ? document.getElementById("date-" + next) : null;
+  if(el) el.scrollIntoView({ behavior:"smooth", block:"start" });
+  else window.scrollTo({ top: 0, behavior:"smooth" });
+});
+document.getElementById("btn-export").addEventListener("click", () => {
+  const blob = new Blob([JSON.stringify({ items: ITEMS.map(it => ({ id: it.id, pass1: it.pass1, pass2: it.pass2, pass3: it.pass3, flagged: it.flagged })) }, null, 2)], { type:"application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "60-item-tracker-progress.json";
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+document.getElementById("btn-import").addEventListener("click", () => document.getElementById("file-import").click());
+document.getElementById("file-import").addEventListener("change", e => {
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try{
+      const data = JSON.parse(reader.result);
+      (data.items || []).forEach(saved => {
+        const it = byId[saved.id];
+        if(it){ it.pass1 = !!saved.pass1; it.pass2 = !!saved.pass2; it.pass3 = !!saved.pass3; it.flagged = !!saved.flagged; }
+      });
+      save(); render();
+    }catch(err){ alert("That file could not be read as tracker progress."); }
+  };
+  reader.readAsText(file);
+  e.target.value = "";
+});
+document.getElementById("btn-reset").addEventListener("click", () => {
+  if(!confirm("Clear all ticks and start over? This cannot be undone (unless you exported first).")) return;
+  ITEMS.forEach(it => { it.pass1 = false; it.pass2 = false; it.pass3 = false; it.flagged = false; });
+  save(); render();
+});
+
+load();
+updateCountdown();
+render();
+</script>
+</body>
+</html>
